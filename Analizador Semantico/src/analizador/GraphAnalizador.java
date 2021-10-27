@@ -7,9 +7,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import javax.swing.table.DefaultTableModel;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import javax.swing.JOptionPane;
+
 /**
  *
- * @author Jazir
+ * Proyecto Analizador 
+ * 
  */
 public class GraphAnalizador extends javax.swing.JFrame {
 
@@ -21,42 +27,36 @@ public class GraphAnalizador extends javax.swing.JFrame {
         String[][] tablaerrores = new String[100][2];
         String[][] tablasimbolos = new String[100][5];
         String[] lineastripletas = new String[100];
-        String[][] tablaopsides = new String[5][2];
-        String[][] tablaopsrelides = new String[5][2];
+        String[][] tablaopsides = new String[8][2];
+        String[][] tablaopsrelides = new String[8][2];
         String[][] tablatripletas = new String[100][4];
-        int conterrores = 0;
-        int contsimbolos = 0;
-        int contlineas = 1;
-        int conttokens = 1;
-        int conttokens2 = 1;
-        int contlineatripletas = 0;
-        int contide = 1;
-        int conttripletas = 0;
-        int conttrip = 0;
-        int contT = 1;
-        int contC = 1;
-        int contTR = 1;
+        int conterrores = 0;int contsimbolos = 0;int contlineas = 1;int conttokens = 1;int conttokens2 = 1;int contlineatripletas = 0; int contide = 1;
+        int conttripletas = 0;int conttrip = 0;int contT = 1;int contC = 1;int contTR = 1;
         int apuntadorfor = 0;
+        int apuntadorfor2 = 0;
         int apuntadorvueltafor = 0;
+        int apuntadorvueltafor2 = 0;
         boolean banderasimbol = false;
-        boolean banderavar = false;
-        boolean banderaops = false;
-        boolean banderaconst = false;
-        boolean banderaerror = false;
-        boolean banderafor = false;
+        boolean banderavar = false;boolean banderaops = false; boolean banderaconst = false; boolean banderaerror = false;boolean banderafor = false;boolean banderafor2 = false;
+        //--Palabras Clave permitidas y funciones aritmeticas--//
         String tipodatos[] = {"int", "boolean", "double", "String"};
         String operadores[] = {"+", "-", "*", "/", "%", "="};
+        //--Declaracion de las ventanas--//
         DefaultTableModel modelo, modelo2, modelo3;
         int numint;
         boolean valbool;
         double numdouble;
         String valStr;
         String tipo = "";
-        //--Ruta del archivo--//
-        String fichero = "C:\\Users\\Jazir\\Desktop\\Codigo.Txt";
+        
+        
+        
+        //--Archivo--//
+        String fichero = "Codigo.Txt";
         
     public GraphAnalizador() {
         initComponents();
+        //--Tablas de la interfaz declaradas--//
         modelo = (DefaultTableModel) jTable1.getModel();
         modelo2 = (DefaultTableModel) jTable2.getModel();
         modelo3 = (DefaultTableModel) jTable3.getModel();
@@ -176,35 +176,41 @@ public class GraphAnalizador extends javax.swing.JFrame {
                             }
                         }
                     }   
-                    
-                    //--Revision y correccion del ciclo FOR--//
-                    if ("FOR".equals(tokens[0])) {
-                        banderafor = true;
-                        if (tokens[1].charAt(0) != '(') {
-                            tablaerrores[conterrores][0] = "" + contlineas;
-                            tablaerrores[conterrores][1] = "No se ha abierto el parentesis del FOR";
-                            conterrores++;
-                        } else {
-                            if (!";".equals(tokens[6]) || !";".equals(tokens[10])) {
+                
+                    if ("WHILE".equals(tokens[0]) || "DO".equals(tokens[0]) ) {
+                        
+                        if( !"DO".equals(tokens[0])){
+                            banderafor = true;
+                        
+                            if (tokens[1].charAt(0) != '(') {
                                 tablaerrores[conterrores][0] = "" + contlineas;
-                                tablaerrores[conterrores][1] = "Falta el ';' del separador en FOR";
+                                tablaerrores[conterrores][1] = "No se ha abierto el parentesis del WHILE";
                                 conterrores++;
-                                banderaerror = true;
                             }
-                        }
+                            boolean defineBol = false;
+                            if("int".equals(tokens[2]) || "string".equals(tokens[2]) || "float".equals(tokens[2]) || "boolean".equals(tokens[2]) 
+                                    || "double".equals(tokens[2])){
+                                
+                                defineBol = true;
+                            }
+                            if (defineBol == false) {
+                                tablaerrores[conterrores][0] = "" + contlineas;
+                                tablaerrores[conterrores][1] = "Error en la declaración de la variable";
+                                conterrores++;
+                            }
+                        } 
                         if (tokens[conttokens].charAt(tokens[conttokens].length()-1) != ')') {
-                            tablaerrores[conterrores][0] = "" + contlineas;
-                            tablaerrores[conterrores][1] = "No se ha cerrado el parentesis del FOR";
-                            conterrores++;
                         }
                         i = conttokens;
                     }
-                    if ("ENDFOR".equals(tokens[0])) {
-                        if (banderafor == false) {
-                            tablaerrores[conterrores][0] = "" + contlineas;
-                            tablaerrores[conterrores][1] = "No se ha abierto in ciclo FOR";
-                            conterrores++;
-                        } else banderafor = false;
+                    if ("ENDWHILE".equals(tokens[0])|| "ENDDO".equals(tokens[0])) {
+                        if(!"ENDDO".equals(tokens[0])){
+                            if (banderafor == false) {
+                                tablaerrores[conterrores][0] = "" + contlineas;
+                                tablaerrores[conterrores][1] = "No se ha abierto un ciclo WHILE";
+                                conterrores++;
+                            } else banderafor = false;
+                        }
                     }
                     
                     //--Revisa si existe alguna variable--//
@@ -234,12 +240,12 @@ public class GraphAnalizador extends javax.swing.JFrame {
                     }
                     
                     //--Checa los tokens excluidos--//
-                    if (banderasimbol == false  && !"FOR".equals(tokens[0]) && !"ENDFOR".equals(tokens[0])) {
+                    if (banderasimbol == false  &&  !"ENDDO".equals(tokens[0]) && !"DO".equals(tokens[0]) && !"WHILE".equals(tokens[0]) && !"ENDWHILE".equals(tokens[0])) {
                         if (banderavar == false && banderaops == false && banderaconst == false) {
                             tablaerrores[conterrores][0] = "" + contlineas;
-                            tablaerrores[conterrores][1] = "Variable " + tokens[i] + " no encontrada";
-                            conterrores++;
-                            banderaerror = true;
+                            tablaerrores[conterrores][1] = "Variable " + tokens[i] + " no declarada";
+                            conterrores++; //
+                            banderaerror = true; //
                         }
                     }
                     
@@ -257,13 +263,13 @@ public class GraphAnalizador extends javax.swing.JFrame {
                     }
                 }
                 
-                //--Revisa error si termina con ;--//
-                if (!";".equals(tokens[conttokens]) && !"FOR".equals(tokens[0]) && !"ENDFOR".equals(tokens[0])) {
+                //--Revisa error si termina con ; dentro del ciclo WHILE--//
+                if (!";".equals(tokens[conttokens]) && !"ENDDO".equals(tokens[0]) && !"DO".equals(tokens[0]) && !"WHILE".equals(tokens[0]) && !"ENDWHILE".equals(tokens[0])) {
                     tablaerrores[conterrores][0] = "" + contlineas;
                     tablaerrores[conterrores][1] = "Hace falta ;";
                     conterrores++;
                 }
-                
+                //--Si se cumple con los requerimientos--//
                 if (banderaerror == false) {
                     lineastripletas[contlineatripletas] = linea;
                     contlineatripletas++;
@@ -278,24 +284,28 @@ public class GraphAnalizador extends javax.swing.JFrame {
             }
             if (banderafor == true) {
                 tablaerrores[conterrores][0] = "" + contlineas;
-                tablaerrores[conterrores][1] = "El ciclo FOR no tiene un ENDFOR;";
+                tablaerrores[conterrores][1] = "El ciclo WHILE no tiene un ENDWHILE;";
                 conterrores++;
             }
             fis.close();
         } catch(IOException e) {}
 
-        tablaopsides[0][0] = "+"; tablaopsides[0][1] = "OPA01";
-        tablaopsides[1][0] = "-"; tablaopsides[1][1] = "OPA02";
-        tablaopsides[2][0] = "*"; tablaopsides[2][1] = "OPA03";
-        tablaopsides[3][0] = "/"; tablaopsides[3][1] = "OPA04";
-        tablaopsides[4][0] = "%"; tablaopsides[4][1] = "OPA05";
+        tablaopsides[0][0] = "+"; tablaopsides[0][1] = "OPA01"; 
+        tablaopsides[1][0] = "-"; tablaopsides[1][1] = "OPA02"; 
+        tablaopsides[2][0] = "*"; tablaopsides[2][1] = "OPA03"; 
+        tablaopsides[3][0] = "/"; tablaopsides[3][1] = "OPA04"; 
+        tablaopsides[4][0] = "%"; tablaopsides[4][1] = "OPA05"; 
         
-        tablaopsrelides[0][0] = "="; tablaopsrelides[0][1] = "OPR01";
-        tablaopsrelides[1][0] = "<"; tablaopsrelides[1][1] = "OPR02";
-        tablaopsrelides[2][0] = ">"; tablaopsrelides[2][1] = "OPR03";
+        tablaopsrelides[0][0] = "="; tablaopsrelides[0][1] = "OPR01";  
+        tablaopsrelides[1][0] = "<"; tablaopsrelides[1][1] = "OPR02"; 
+        tablaopsrelides[2][0] = ">"; tablaopsrelides[2][1] = "OPR03"; 
         tablaopsrelides[3][0] = "<="; tablaopsrelides[3][1] = "OPR04";
         tablaopsrelides[4][0] = ">="; tablaopsrelides[4][1] = "OPR05";
+        tablaopsrelides[5][0] = "=="; tablaopsrelides[5][1] = "OPR06";
+        tablaopsrelides[6][0] = "!="; tablaopsrelides[6][1] = "OPR07";
+        tablaopsrelides[7][0] = "||"; tablaopsrelides[7][1] = "OPR08";
         
+        // --Insertar valores en tabla simbolos ciclo WHILE --//
         for (int x = 0; x < contlineatripletas; x++) {
             System.out.println(lineastripletas[x]);
             //--Separa todos los caracteres de la linea--//
@@ -355,8 +365,7 @@ public class GraphAnalizador extends javax.swing.JFrame {
                         }
                     }
                     if ("".equals(tablatripletas[conttrip][2]) || tablatripletas[conttrip][2] == null) {
-                        tablatripletas[conttrip][2] = "CE" + contC;
-                        contC++;
+//                 
                     }
                     tablatripletas[conttrip][3] = "=";
                     tablatripletas[conttrip+1][0] = "" + (conttrip + 1);
@@ -417,49 +426,26 @@ public class GraphAnalizador extends javax.swing.JFrame {
                     i = conttokens2+1;
                     }
                 }
-                if ("FOR".equals(tokens2[0])) {
+                if("WHILE".equals(tokens2[0])) {
                     apuntadorvueltafor = conttrip;
                     for (String tipodato : tipodatos) {
                         if (tokens2[2].equals(tipodato)) {
+
                             tablatripletas[conttrip][0] = "" + (conttrip);
-                            tablatripletas[conttrip][1] = "T" + contT;
+                            tablatripletas[conttrip][1] = "IDETEMP";
                             tablatripletas[conttrip][2] = "CE" + contC;
-                            tablatripletas[conttrip][3] = "=";
-                            tablatripletas[conttrip+1][0] = "" + (conttrip + 1);
-                            tablatripletas[conttrip+1][1] = "IDETEMP";
-                            tablatripletas[conttrip+1][2] = "T" + contT;
-                            tablatripletas[conttrip+1][3] = "OPR01";     
                             for (String[] tablaopsrelide : tablaopsrelides) {
                                 if (tokens2[4].equals(tablaopsrelide[0])) {
-                                    tablatripletas[conttrip+1][3] = tablaopsrelide[1];
+                                    tablatripletas[conttrip][3] = tablaopsrelide[1];
                                 }
                             }
-                            contT++;
+
                             contC++;
-                            conttrip++;conttrip++;
+                            conttrip++;
                             i = conttokens2+1;
                         }
                     }
-                    
-                    tablatripletas[conttrip][0] = "" + (conttrip);
-                    tablatripletas[conttrip][1] = "T" + contT;
-                    tablatripletas[conttrip][2] = "CE" + contC;
-                    tablatripletas[conttrip][3] = "=";
-                    contC++;
-                    contT++;
-                    conttrip++;
-                    tablatripletas[conttrip][0] = "" + (conttrip);
-                    tablatripletas[conttrip][1] = "T" + (contT);
-                    tablatripletas[conttrip][2] = "T" + (contT-1);
-                    for (String[] tablaopsrelide : tablaopsrelides) {
-                        if (tokens2[8].equals(tablaopsrelide[0])) {
-                            tablatripletas[conttrip][3] = tablaopsrelide[1];
-                        }
-                    }
-                    contT++;
-                    contC++;
-                    conttrip++;
-                    
+               
                     tablatripletas[conttrip][0] = "" + (conttrip);
                     tablatripletas[conttrip][1] = "TR" + (contTR);
                     tablatripletas[conttrip][2] = "TRUE";
@@ -473,16 +459,12 @@ public class GraphAnalizador extends javax.swing.JFrame {
                     contTR++;
                     
                 }
-                if ("ENDFOR".equals(tokens2[0])) {
-                    tablatripletas[conttrip][0] = "" + (conttrip);
-                    tablatripletas[conttrip][1] = tablatripletas[apuntadorfor - 5][1];
-                    tablatripletas[conttrip][2] = tablatripletas[apuntadorfor - 5][2];
-                    tablatripletas[conttrip][3] = "OPA01"; 
-                    conttrip++;
+                if("ENDWHILE".equals(tokens2[0]) && apuntadorfor > 0) {
                     tablatripletas[conttrip][0] = "" + (conttrip);
                     tablatripletas[conttrip][1] = "JP";
-                    tablatripletas[conttrip][3] = "" + (apuntadorvueltafor + 1);    
-                    tablatripletas[apuntadorfor][3] = "" + (conttrip);
+                    tablatripletas[conttrip][3] = "" + (apuntadorvueltafor);  
+                    //apuntador asignador de ultimo lugar dentro del while
+                    tablatripletas[apuntadorfor][3] = "" + (conttrip +1);
                     conttrip++;
                 }
             }
@@ -495,70 +477,42 @@ public class GraphAnalizador extends javax.swing.JFrame {
     private void initComponents() {
 
         PanelGeneral = new javax.swing.JPanel();
-        PanelBoton = new javax.swing.JPanel();
-        BtnDesplegar = new javax.swing.JButton();
         PanelSimbolos = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTable3 = new javax.swing.JTable();
         PanelCodigo = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         PanelErrores = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
-        PanelTripletas = new javax.swing.JPanel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        jTable3 = new javax.swing.JTable();
+        PanelBoton = new javax.swing.JPanel();
+        BtnDesplegar = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Analizador");
         setBackground(new java.awt.Color(18, 150, 200));
         setForeground(new java.awt.Color(18, 150, 200));
+        setUndecorated(true);
         setResizable(false);
 
-        PanelGeneral.setBackground(new java.awt.Color(18, 150, 200));
+        PanelGeneral.setBackground(new java.awt.Color(204, 204, 204));
+        PanelGeneral.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createTitledBorder(""), "Analizador Semantico", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14))); // NOI18N
 
-        PanelBoton.setBackground(new java.awt.Color(18, 150, 200));
-        PanelBoton.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Seleccion de despliegue", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 11), new java.awt.Color(255, 255, 255))); // NOI18N
+        PanelSimbolos.setBackground(new java.awt.Color(204, 204, 204));
+        PanelSimbolos.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Tabla Simbolos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 12), new java.awt.Color(255, 255, 255))); // NOI18N
 
-        BtnDesplegar.setBackground(new java.awt.Color(0, 0, 0));
-        BtnDesplegar.setFont(new java.awt.Font("Nirmala UI Semilight", 1, 14)); // NOI18N
-        BtnDesplegar.setForeground(new java.awt.Color(240, 240, 240));
-        BtnDesplegar.setText("Desplegar Datos");
-        BtnDesplegar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                BtnDesplegarMouseClicked(evt);
-            }
-        });
-
-        javax.swing.GroupLayout PanelBotonLayout = new javax.swing.GroupLayout(PanelBoton);
-        PanelBoton.setLayout(PanelBotonLayout);
-        PanelBotonLayout.setHorizontalGroup(
-            PanelBotonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelBotonLayout.createSequentialGroup()
-                .addContainerGap(294, Short.MAX_VALUE)
-                .addComponent(BtnDesplegar)
-                .addGap(303, 303, 303))
-        );
-        PanelBotonLayout.setVerticalGroup(
-            PanelBotonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(PanelBotonLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(BtnDesplegar, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        PanelSimbolos.setBackground(new java.awt.Color(18, 150, 200));
-        PanelSimbolos.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Simbolos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 11), new java.awt.Color(255, 255, 255))); // NOI18N
-
-        jTable1.setBackground(new java.awt.Color(0, 255, 102));
+        jTable1.setBackground(new java.awt.Color(214, 212, 212));
         jTable1.setFont(new java.awt.Font("Segoe UI Emoji", 0, 12)); // NOI18N
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Linea", "Tipo de dato", "Variable", "Valor", "IDE"
+                "Linea", "Tipo de dato", "Variable", "Null", "IDE"
             }
         ));
         jTable1.setEnabled(false);
@@ -569,26 +523,49 @@ public class GraphAnalizador extends javax.swing.JFrame {
             jTable1.getColumnModel().getColumn(3).setPreferredWidth(70);
         }
 
+        jTable3.setBackground(new java.awt.Color(240, 240, 240));
+        jTable3.setFont(new java.awt.Font("Segoe UI Emoji", 0, 12)); // NOI18N
+        jTable3.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "#", "Dato Objeto", "Dato Fuente", "Operador"
+            }
+        ));
+        jTable3.setEnabled(false);
+        jScrollPane4.setViewportView(jTable3);
+        if (jTable3.getColumnModel().getColumnCount() > 0) {
+            jTable3.getColumnModel().getColumn(0).setPreferredWidth(10);
+        }
+
         javax.swing.GroupLayout PanelSimbolosLayout = new javax.swing.GroupLayout(PanelSimbolos);
         PanelSimbolos.setLayout(PanelSimbolosLayout);
         PanelSimbolosLayout.setHorizontalGroup(
             PanelSimbolosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSimbolosLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(28, 28, 28)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         PanelSimbolosLayout.setVerticalGroup(
             PanelSimbolosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelSimbolosLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(PanelSimbolosLayout.createSequentialGroup()
+                .addGap(77, 77, 77)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 447, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        PanelCodigo.setBackground(new java.awt.Color(18, 150, 200));
-        PanelCodigo.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Código", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 11), new java.awt.Color(255, 255, 255))); // NOI18N
+        PanelCodigo.setBackground(new java.awt.Color(204, 204, 204));
+        PanelCodigo.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Seccion Código", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 12), new java.awt.Color(255, 255, 255))); // NOI18N
 
+        jTextArea1.setEditable(false);
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
         jScrollPane2.setViewportView(jTextArea1);
@@ -599,19 +576,19 @@ public class GraphAnalizador extends javax.swing.JFrame {
             PanelCodigoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelCodigoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 249, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
                 .addContainerGap())
         );
         PanelCodigoLayout.setVerticalGroup(
             PanelCodigoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelCodigoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
+                .addComponent(jScrollPane2)
                 .addContainerGap())
         );
 
-        PanelErrores.setBackground(new java.awt.Color(18, 150, 200));
-        PanelErrores.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Errores", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 11), new java.awt.Color(255, 255, 255))); // NOI18N
+        PanelErrores.setBackground(new java.awt.Color(204, 204, 204));
+        PanelErrores.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Tabla de Errores", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 12), new java.awt.Color(255, 255, 255))); // NOI18N
 
         jTable2.setBackground(new java.awt.Color(255, 51, 51));
         jTable2.setFont(new java.awt.Font("Segoe UI Emoji", 0, 12)); // NOI18N
@@ -637,51 +614,58 @@ public class GraphAnalizador extends javax.swing.JFrame {
             PanelErroresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelErroresLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
+                .addComponent(jScrollPane3)
                 .addContainerGap())
         );
         PanelErroresLayout.setVerticalGroup(
             PanelErroresLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelErroresLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        PanelTripletas.setBackground(new java.awt.Color(18, 150, 200));
-        PanelTripletas.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Tripletas", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 11), new java.awt.Color(255, 255, 255))); // NOI18N
+        PanelBoton.setBackground(new java.awt.Color(204, 204, 204));
+        PanelBoton.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Ejecución", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 1, 12), new java.awt.Color(255, 255, 255))); // NOI18N
 
-        jTable3.setBackground(new java.awt.Color(102, 204, 255));
-        jTable3.setFont(new java.awt.Font("Segoe UI Emoji", 0, 12)); // NOI18N
-        jTable3.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "", "Dato Objeto", "Dato Fuente", "Operador"
+        BtnDesplegar.setBackground(new java.awt.Color(0, 0, 0));
+        BtnDesplegar.setFont(new java.awt.Font("NSimSun", 1, 18)); // NOI18N
+        BtnDesplegar.setForeground(new java.awt.Color(240, 240, 240));
+        BtnDesplegar.setText("Ejecutar");
+        BtnDesplegar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        BtnDesplegar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                BtnDesplegarMouseClicked(evt);
             }
-        ));
-        jTable3.setEnabled(false);
-        jScrollPane4.setViewportView(jTable3);
-        if (jTable3.getColumnModel().getColumnCount() > 0) {
-            jTable3.getColumnModel().getColumn(0).setPreferredWidth(10);
-        }
+        });
 
-        javax.swing.GroupLayout PanelTripletasLayout = new javax.swing.GroupLayout(PanelTripletas);
-        PanelTripletas.setLayout(PanelTripletasLayout);
-        PanelTripletasLayout.setHorizontalGroup(
-            PanelTripletasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(PanelTripletasLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-                .addContainerGap())
+        jButton2.setBackground(new java.awt.Color(0, 0, 0));
+        jButton2.setFont(new java.awt.Font("NSimSun", 1, 18)); // NOI18N
+        jButton2.setForeground(new java.awt.Color(240, 240, 240));
+        jButton2.setText("Reinicio");
+        jButton2.setMaximumSize(new java.awt.Dimension(123, 29));
+        jButton2.setMinimumSize(new java.awt.Dimension(123, 29));
+        jButton2.setPreferredSize(new java.awt.Dimension(123, 29));
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout PanelBotonLayout = new javax.swing.GroupLayout(PanelBoton);
+        PanelBoton.setLayout(PanelBotonLayout);
+        PanelBotonLayout.setHorizontalGroup(
+            PanelBotonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(BtnDesplegar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE)
         );
-        PanelTripletasLayout.setVerticalGroup(
-            PanelTripletasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(PanelTripletasLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane4)
-                .addContainerGap())
+        PanelBotonLayout.setVerticalGroup(
+            PanelBotonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PanelBotonLayout.createSequentialGroup()
+                .addComponent(BtnDesplegar, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(389, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout PanelGeneralLayout = new javax.swing.GroupLayout(PanelGeneral);
@@ -690,51 +674,50 @@ public class GraphAnalizador extends javax.swing.JFrame {
             PanelGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelGeneralLayout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(PanelCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(PanelGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(PanelErrores, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(PanelGeneralLayout.createSequentialGroup()
                         .addComponent(PanelSimbolos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(PanelErrores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(PanelBoton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(PanelCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(PanelTripletas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(PanelBoton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         PanelGeneralLayout.setVerticalGroup(
             PanelGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelGeneralLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(PanelGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(PanelCodigo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(PanelGeneralLayout.createSequentialGroup()
-                        .addComponent(PanelBoton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(PanelCodigo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(PanelGeneralLayout.createSequentialGroup()
                         .addGroup(PanelGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(PanelSimbolos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(PanelErrores, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addComponent(PanelTripletas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                            .addComponent(PanelSimbolos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(PanelBoton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addComponent(PanelErrores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
+
+        PanelBoton.getAccessibleContext().setAccessibleName("Seleccion de despliegue\n");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(PanelGeneral, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(PanelGeneral, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(PanelGeneral, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(PanelGeneral, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void BtnDesplegarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BtnDesplegarMouseClicked
@@ -744,7 +727,7 @@ public class GraphAnalizador extends javax.swing.JFrame {
         }
         for (int i = 0; i <contsimbolos; i++) {
             modelo.addRow(new Object[]{tablasimbolos[i][0], tablasimbolos[i][1], tablasimbolos[i][2],
-                                        tablasimbolos[i][3], tablasimbolos[i][4]});
+                tablasimbolos[i][3], tablasimbolos[i][4]});
         }
         int filas2 = modelo2.getRowCount();
         for (int i = 1; i <= filas2; i++) {
@@ -760,7 +743,52 @@ public class GraphAnalizador extends javax.swing.JFrame {
         for (int i = 0; i <conttrip; i++) {
             modelo3.addRow(new Object[]{tablatripletas[i][0], tablatripletas[i][1], tablatripletas[i][2], tablatripletas[i][3]});
         }
+        
+        try{
+            File archivo = new File("Triple.txt"); 
+            FileWriter escribir=new FileWriter(archivo,false);
+            
+            File archivo2 = new File("Errores.txt"); 
+            FileWriter archi =new FileWriter(archivo2,false);
+            
+            //escribir.write(Error);
+            escribir.write("Núm    ");
+            escribir.write("Dato Objeto    ");
+            escribir.write("Dato Fuente   ");
+            escribir.write("Dato Operador   \r\n");
+            
+            archi.write("Linea  ");
+            archi.write("Error  \r\n");
+            
+            for (int u = 0; u <conttrip; u++) {
+            escribir.write(tablatripletas[u][0]+"   ");
+            escribir.write(tablatripletas[u][1]+"    ");
+            escribir.write(tablatripletas[u][2]+"    ");
+            escribir.write(tablatripletas[u][3]+"  \r\n");
+            }
+            
+            for (int q = 0; q <conterrores; q++) {
+            archi.write(tablaerrores[q][0]+"     ");
+            archi.write(tablaerrores[q][1]+"  \r\n");
+            }
+            
+            JOptionPane.showMessageDialog(null,"Se crea bien el archivo" );
+            escribir.close();
+            archi.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error al escribir");
+            
+            JOptionPane.showMessageDialog(null,"Error al generar el archivo" );
+        }
     }//GEN-LAST:event_BtnDesplegarMouseClicked
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        
+        this.dispose();
+        GraphAnalizador.main(null);
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     public static void main(String args[]) {
         try {
@@ -793,7 +821,7 @@ public class GraphAnalizador extends javax.swing.JFrame {
     private javax.swing.JPanel PanelErrores;
     private javax.swing.JPanel PanelGeneral;
     private javax.swing.JPanel PanelSimbolos;
-    private javax.swing.JPanel PanelTripletas;
+    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

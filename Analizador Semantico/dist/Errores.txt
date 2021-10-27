@@ -1,0 +1,2 @@
+Linea  Error  
+7     Variable u no declarada  

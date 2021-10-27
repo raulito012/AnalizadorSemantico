@@ -1,0 +1,2 @@
+Linea  Error  
+9     Tipo de variable (int) incompatible  
